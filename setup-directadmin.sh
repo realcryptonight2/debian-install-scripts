@@ -41,6 +41,13 @@ wget -O directadmin.sh https://download.directadmin.com/setup.sh
 chmod 755 directadmin.sh
 ./directadmin.sh $1
 
+# Add the mysql script that allows MySQL to use the same SSL Certificate as the host.
+cp mysql_update_cert.sh /usr/local/directadmin/scripts/custom/
+chmod 700 /usr/local/directadmin/scripts/custom/mysql_update_cert.sh
+chown root:root /usr/local/directadmin/scripts/custom/mysql_update_cert.sh
+echo "0 3	* * 1	root	/usr/local/directadmin/scripts/custom/mysql_update_cert.sh" >> /etc/crontab
+systemctl restart cron.service
+
 # Install and request LetsEncrypt Certificates for the directadmin domain itself.
 cd /usr/local/directadmin/custombuild
 ./build letsencrypt
@@ -89,6 +96,9 @@ service directadmin restart
 cd custombuild
 ./build update
 ./build phpmyadmin
+
+# Force SSL Certificate match.
+/usr/local/directadmin/scripts/custom/mysql_update_cert.sh
 
 # Clear the screen and display the login data.
 clear
