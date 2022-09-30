@@ -35,8 +35,8 @@ export DA_HOSTNAME=$serverhostname
 export DA_NS1=$ns1host
 export DA_NS2=$ns2host
 export DA_FOREGROUND_CUSTOMBUILD=yes
-export mysql 8.0
-export mysql_inst mysql
+export mysql_inst=mysql
+export mysql=8.0
 
 # Download and run the DirectAdmin install script.
 wget -O directadmin.sh https://download.directadmin.com/setup.sh
