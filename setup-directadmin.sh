@@ -14,14 +14,14 @@ if [ -z "$2" ]
 	exit 1
 fi
 
-# Run the default install.
-chmod 755 setup-standard.sh
-./setup-standard.sh
-
-# Run pre-install commands
+# Run apt install commands
 apt -y update
 apt -y upgrade
 apt -y install git curl
+
+# Run the default install.
+chmod 755 setup-standard.sh
+./setup-standard.sh
 
 # Get the server IP for reverse DNS lookup.
 serverip=`hostname -I | awk '{print $1}'`
@@ -46,30 +46,36 @@ export DA_SKIP_CSF=true
 export DA_FOREGROUND_CUSTOMBUILD=yes
 export mysql_inst=mysql
 export mysql=8.0
-export php1_release=8.1
-export php2_release=8.0
-export php3_release=7.4
-export php1_mode=php-fpm
-export php2_mode=php-fpm
-export php3_mode=php-fpm
 
 # Download and run the DirectAdmin install script.
 wget -O directadmin.sh https://download.directadmin.com/setup.sh
 chmod 755 directadmin.sh
 ./directadmin.sh $1
 
+# Add the mysql script that allows MySQL to use the same SSL Certificate as the host.
+cp ./files/mysql_update_cert.sh /usr/local/directadmin/scripts/custom/
+chmod 755 /usr/local/directadmin/scripts/custom/mysql_update_cert.sh
+chown root:root /usr/local/directadmin/scripts/custom/mysql_update_cert.sh
+echo "0 3	* * 1	root	/usr/local/directadmin/scripts/custom/mysql_update_cert.sh" >> /etc/crontab
+systemctl restart cron.service
+
+# Change the installed PHP versions.
+cd /usr/local/directadmin/custombuild
+./build update
+./build set php1_release 8.1
+./build set php2_release 8.0
+./build set php3_release 7.4
+./build set php1_mode php-fpm
+./build set php2_mode php-fpm
+./build set php3_mode php-fpm
+./build php n
+./build rewrite_confs
+
 # Install and request LetsEncrypt Certificates for the directadmin domain itself.
 cd /usr/local/directadmin/custombuild
 ./build letsencrypt
 /usr/local/directadmin/scripts/letsencrypt.sh request_single $serverhostname 4096
 systemctl restart directadmin.service
-
-# Add the mysql script that allows MySQL to use the same SSL Certificate as the host.
-cp ./files/mysql_update_cert.sh /usr/local/directadmin/scripts/custom/
-chmod 700 /usr/local/directadmin/scripts/custom/mysql_update_cert.sh
-chown root:root /usr/local/directadmin/scripts/custom/mysql_update_cert.sh
-echo "0 3	* * 1	root	/usr/local/directadmin/scripts/custom/mysql_update_cert.sh" >> /etc/crontab
-systemctl restart cron.service
 
 # Enable multi SSL support for the mail server.
 echo "mail_sni=1" >> /usr/local/directadmin/conf/directadmin.conf
@@ -97,7 +103,7 @@ cd custombuild
 ./build phpmyadmin
 
 # Force SSL Certificate match.
-/usr/local/directadmin/scripts/custom/mysql_update_cert.sh
+#/usr/local/directadmin/scripts/custom/mysql_update_cert.sh
 
 # Clear the screen and display the login data.
 clear
