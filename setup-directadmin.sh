@@ -20,12 +20,12 @@ apt -y upgrade
 apt -y install git curl dnsutils
 
 # Store current directory location for later.
-installdir=`$PWD`
+installdir=$(pwd)
 
 # Get the hostname and domain name for NS records.
-serverip=`hostname -I | awk '{print $1}'`.
-serverhostname=`dig -x ${serverip} +short | sed 's/\.[^.]*$//'`
-domainhostname=`echo $serverhostname | sed 's/^[^.]*.//g'`
+serverip=$(hostname -I | awk '{print $1}')
+serverhostname=$(dig -x "${serverip}" +short | sed 's/\.[^.]*$//')
+domainhostname=$(echo "$serverhostname" | sed 's/^[^.]*.//g')
 ns1host="ns1.${domainhostname}"
 ns2host="ns2.${domainhostname}"
 
@@ -39,6 +39,21 @@ export DA_FOREGROUND_CUSTOMBUILD=yes
 export DA_SKIP_CSF=true
 export mysql_inst=mysql
 export mysql=8.0
+
+if [[ -z "${DA_HOSTNAME}" ]]; then
+  echo "DA_HOSTNAME not set!"
+  exit 1
+fi
+
+if [[ -z "${DA_NS1}" ]]; then
+  echo "DA_NS1 not set!"
+  exit 1
+fi
+
+if [[ -z "${DA_NS2}" ]]; then
+  echo "DA_NS2 not set!"
+  exit 1
+fi
 
 # Run the default install.
 chmod 755 setup-standard.sh
@@ -87,19 +102,20 @@ cd custombuild
 ./build phpmyadmin
 
 # Add the mysql script that allows MySQL to use the same SSL Certificate as the host.
-cp $installdir/files/mysql_update_cert.sh /usr/local/directadmin/scripts/custom/
+cp "${installdir}/files/mysql_update_cert.sh" /usr/local/directadmin/scripts/custom/
 chmod 755 /usr/local/directadmin/scripts/custom/mysql_update_cert.sh
 chown root:root /usr/local/directadmin/scripts/custom/mysql_update_cert.sh
 echo "0 3	* * 1	root	/usr/local/directadmin/scripts/custom/mysql_update_cert.sh" >> /etc/crontab
 systemctl restart cron.service
-#/usr/local/directadmin/scripts/custom/mysql_update_cert.sh
+/usr/local/directadmin/scripts/custom/mysql_update_cert.sh
 
 # Clear the screen and display the login data.
 clear
 . /usr/local/directadmin/scripts/setup.txt
+onetimelogin=`/usr/local/directadmin/directadmin --create-login-url user=$2`
+echo "Hostname: $serverhostname"
 echo "Admin account username: $adminname"
 echo "Admin account password: $adminpass"
-echo "Domain: $serverhostname"
-/usr/local/directadmin/directadmin --create-login-url user=$2
+echo "One-Time login URL: $onetimelogin"
 
 exit 0
