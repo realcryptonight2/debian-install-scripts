@@ -14,29 +14,22 @@ if [ -z "$2" ]
 	exit 1
 fi
 
-# Run apt install commands
+# Run the install commands that install the packages required for this script and DirectAdmin.
 apt -y update
 apt -y upgrade
 apt -y install git curl dnsutils
 
-# Run the default install.
-chmod 755 setup-standard.sh
-./setup-standard.sh
+# Store current directory location for later.
+installdir=`$PWD`
 
-# Get the server IP for reverse DNS lookup.
-serverip=`hostname -I | awk '{print $1}'`
-
-# Get server hostname from reverse DNS lookup.
+# Get the hostname and domain name for NS records.
+serverip=`hostname -I | awk '{print $1}'`.
 serverhostname=`dig -x ${serverip} +short | sed 's/\.[^.]*$//'`
-
-# Get just the domain name.
 domainhostname=`echo $serverhostname | sed 's/^[^.]*.//g'`
-
-# NS hostnames.
 ns1host="ns1.${domainhostname}"
 ns2host="ns2.${domainhostname}"
 
-# Set some variables to let DirectAdmin install correctly.
+# Set variables to let DirectAdmin install correctly.
 export DA_CHANNEL=current
 export DA_ADMIN_USER=$2
 export DA_HOSTNAME=$serverhostname
@@ -47,64 +40,14 @@ export DA_SKIP_CSF=true
 export mysql_inst=mysql
 export mysql=8.0
 
-if [[ -z "${DA_CHANNEL}" ]]; then
-  echo "DA_CHANNEL not set!"
-  exit 1
-fi
-
-if [[ -z "${DA_HOSTNAME}" ]]; then
-  echo "DA_HOSTNAME not set!"
-  exit 1
-fi
-
-if [[ -z "${DA_NS1}" ]]; then
-  echo "DA_NS1 not set!"
-  exit 1
-fi
-
-if [[ -z "${DA_NS2}" ]]; then
-  echo "DA_NS2 not set!"
-  exit 1
-fi
-
-if [[ -z "${DA_FOREGROUND_CUSTOMBUILD}" ]]; then
-  echo "DA_FOREGROUND_CUSTOMBUILD not set!"
-  exit 1
-fi
-
-if [[ -z "${DA_SKIP_CSF}" ]]; then
-  echo "DA_SKIP_CSF not set!"
-  exit 1
-fi
-
-if [[ -z "${mysql_inst}" ]]; then
-  echo "mysql_inst not set!"
-  exit 1
-fi
-
-if [[ -z "${mysql}" ]]; then
-  echo "mysql not set!"
-  exit 1
-fi
-
+# Run the default install.
+chmod 755 setup-standard.sh
+./setup-standard.sh
 
 # Download and run the DirectAdmin install script.
 wget -O directadmin.sh https://download.directadmin.com/setup.sh
 chmod 755 directadmin.sh
 ./directadmin.sh $1
-
-# Add the mysql script that allows MySQL to use the same SSL Certificate as the host.
-cp ./files/mysql_update_cert.sh /usr/local/directadmin/scripts/custom/
-chmod 755 /usr/local/directadmin/scripts/custom/mysql_update_cert.sh
-chown root:root /usr/local/directadmin/scripts/custom/mysql_update_cert.sh
-echo "0 3	* * 1	root	/usr/local/directadmin/scripts/custom/mysql_update_cert.sh" >> /etc/crontab
-systemctl restart cron.service
-
-# Install and request LetsEncrypt Certificates for the directadmin domain itself.
-cd /usr/local/directadmin/custombuild
-./build letsencrypt
-/usr/local/directadmin/scripts/letsencrypt.sh request_single $serverhostname 4096
-systemctl restart directadmin.service
 
 # Change the installed PHP versions.
 cd /usr/local/directadmin/custombuild
@@ -143,7 +86,12 @@ cd custombuild
 ./build update
 ./build phpmyadmin
 
-# Force SSL Certificate match.
+# Add the mysql script that allows MySQL to use the same SSL Certificate as the host.
+cp ./files/mysql_update_cert.sh /usr/local/directadmin/scripts/custom/
+chmod 755 /usr/local/directadmin/scripts/custom/mysql_update_cert.sh
+chown root:root /usr/local/directadmin/scripts/custom/mysql_update_cert.sh
+echo "0 3	* * 1	root	/usr/local/directadmin/scripts/custom/mysql_update_cert.sh" >> /etc/crontab
+systemctl restart cron.service
 #/usr/local/directadmin/scripts/custom/mysql_update_cert.sh
 
 # Clear the screen and display the login data.
