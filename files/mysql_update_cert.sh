@@ -35,3 +35,4 @@ if [ "$is_updated" == 1 ];
 then
     systemctl restart mysqld.service
 fi
+exit 0

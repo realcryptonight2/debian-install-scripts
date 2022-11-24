@@ -21,7 +21,7 @@ chmod 755 setup-standard.sh
 # Run pre-install commands
 apt -y update
 apt -y upgrade
-apt -y install git curl gcc g++ make flex bison openssl libssl-dev perl perl-base perl-modules libperl-dev libperl4-corelibs-perl libwww-perl libaio1 libaio-dev zlib1g zlib1g-dev libcap-dev cron bzip2 zip automake autoconf libtool cmake pkg-config python libdb-dev libsasl2-dev libncurses5 libncurses5-dev libsystemd-dev bind9 dnsutils quota patch logrotate rsyslog libc6-dev libexpat1-dev libcrypt-openssl-rsa-perl libnuma-dev libnuma1
+apt -y install git curl
 
 # Get the server IP for reverse DNS lookup.
 serverip=`hostname -I | awk '{print $1}'`
@@ -42,6 +42,7 @@ export DA_HOSTNAME=$serverhostname
 export DA_ADMIN_USER=$2
 export DA_NS1=$ns1host
 export DA_NS2=$ns2host
+export DA_SKIP_CSF=true
 export DA_FOREGROUND_CUSTOMBUILD=yes
 export mysql_inst=mysql
 export mysql=8.0
