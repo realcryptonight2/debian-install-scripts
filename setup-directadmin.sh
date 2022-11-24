@@ -17,7 +17,7 @@ fi
 # Run apt install commands
 apt -y update
 apt -y upgrade
-apt -y install git curl
+apt -y install git curl dnsutils
 
 # Run the default install.
 chmod 755 setup-standard.sh
