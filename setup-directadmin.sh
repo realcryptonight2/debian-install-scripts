@@ -87,7 +87,7 @@ cd custombuild
 ./build phpmyadmin
 
 # Add the mysql script that allows MySQL to use the same SSL Certificate as the host.
-cp ./files/mysql_update_cert.sh /usr/local/directadmin/scripts/custom/
+cp $installdir/files/mysql_update_cert.sh /usr/local/directadmin/scripts/custom/
 chmod 755 /usr/local/directadmin/scripts/custom/mysql_update_cert.sh
 chown root:root /usr/local/directadmin/scripts/custom/mysql_update_cert.sh
 echo "0 3	* * 1	root	/usr/local/directadmin/scripts/custom/mysql_update_cert.sh" >> /etc/crontab
