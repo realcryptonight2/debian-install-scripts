@@ -24,8 +24,8 @@ installdir=$(pwd)
 
 # Get the hostname and domain name for NS records.
 serverip=$(hostname -I | awk '{print $1}')
-serverhostname=$(dig -x "${serverip}" +short | sed 's/\.[^.]*$//')
-domainhostname=$(echo "$serverhostname" | sed 's/^[^.]*.//g')
+serverhostname=$(dig -x $serverip +short | sed 's/\.[^.]*$//')
+domainhostname=$(echo $serverhostname | sed 's/^[^.]*.//g')
 ns1host="ns1.${domainhostname}"
 ns2host="ns2.${domainhostname}"
 
