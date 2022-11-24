@@ -3,7 +3,14 @@
 # Check if a license key is given.
 if [ -z "$1" ]
   then
-    echo "./setup-directadmin.sh <DirectAdmin license key>"
+    echo "./setup-directadmin.sh <DirectAdmin license key> <admin username>"
+	exit 1
+fi
+
+# Check if a admin username is given.
+if [ -z "$2" ]
+  then
+    echo "./setup-directadmin.sh <DirectAdmin license key> <admin username>"
 	exit 1
 fi
 
@@ -32,6 +39,7 @@ ns2host="ns2.${domainhostname}"
 # Set some variables to let DirectAdmin install correctly.
 export DA_CHANNEL=current
 export DA_HOSTNAME=$serverhostname
+export DA_ADMIN_USER=$2
 export DA_NS1=$ns1host
 export DA_NS2=$ns2host
 export DA_FOREGROUND_CUSTOMBUILD=yes
