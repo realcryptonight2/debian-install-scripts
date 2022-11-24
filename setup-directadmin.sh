@@ -58,6 +58,12 @@ wget -O directadmin.sh https://download.directadmin.com/setup.sh
 chmod 755 directadmin.sh
 ./directadmin.sh $1
 
+# Install and request LetsEncrypt Certificates for the directadmin domain itself.
+cd /usr/local/directadmin/custombuild
+./build letsencrypt
+/usr/local/directadmin/scripts/letsencrypt.sh request_single $serverhostname 4096
+systemctl restart directadmin.service
+
 # Add the mysql script that allows MySQL to use the same SSL Certificate as the host.
 cp ./files/mysql_update_cert.sh /usr/local/directadmin/scripts/custom/
 chmod 700 /usr/local/directadmin/scripts/custom/mysql_update_cert.sh
