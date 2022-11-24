@@ -38,6 +38,7 @@ ns2host="ns2.${domainhostname}"
 
 # Set some variables to let DirectAdmin install correctly.
 export DA_CHANNEL=current
+export DA_ADMIN_USER=$2
 export DA_HOSTNAME=$serverhostname
 export DA_NS1=$ns1host
 export DA_NS2=$ns2host
