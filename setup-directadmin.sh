@@ -39,11 +39,10 @@ ns2host="ns2.${domainhostname}"
 # Set some variables to let DirectAdmin install correctly.
 export DA_CHANNEL=current
 export DA_HOSTNAME=$serverhostname
-export DA_ADMIN_USER=$2
 export DA_NS1=$ns1host
 export DA_NS2=$ns2host
-export DA_SKIP_CSF=true
 export DA_FOREGROUND_CUSTOMBUILD=yes
+export DA_SKIP_CSF=true
 export mysql_inst=mysql
 export mysql=8.0
 
@@ -59,6 +58,12 @@ chown root:root /usr/local/directadmin/scripts/custom/mysql_update_cert.sh
 echo "0 3	* * 1	root	/usr/local/directadmin/scripts/custom/mysql_update_cert.sh" >> /etc/crontab
 systemctl restart cron.service
 
+# Install and request LetsEncrypt Certificates for the directadmin domain itself.
+cd /usr/local/directadmin/custombuild
+./build letsencrypt
+/usr/local/directadmin/scripts/letsencrypt.sh request_single $serverhostname 4096
+systemctl restart directadmin.service
+
 # Change the installed PHP versions.
 cd /usr/local/directadmin/custombuild
 ./build update
@@ -70,12 +75,6 @@ cd /usr/local/directadmin/custombuild
 ./build set php3_mode php-fpm
 ./build php n
 ./build rewrite_confs
-
-# Install and request LetsEncrypt Certificates for the directadmin domain itself.
-cd /usr/local/directadmin/custombuild
-./build letsencrypt
-/usr/local/directadmin/scripts/letsencrypt.sh request_single $serverhostname 4096
-systemctl restart directadmin.service
 
 # Enable multi SSL support for the mail server.
 echo "mail_sni=1" >> /usr/local/directadmin/conf/directadmin.conf
@@ -108,8 +107,9 @@ cd custombuild
 # Clear the screen and display the login data.
 clear
 . /usr/local/directadmin/scripts/setup.txt
-echo "Username: $adminname"
-echo "Password: $adminpass"
+echo "Admin account username: $adminname"
+echo "Admin account password: $adminpass"
 echo "Domain: $serverhostname"
+/usr/local/directadmin/directadmin --create-login-url user=$2
 
 exit 0
