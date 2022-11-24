@@ -46,6 +46,47 @@ export DA_SKIP_CSF=true
 export mysql_inst=mysql
 export mysql=8.0
 
+if [[ -z "${DA_CHANNEL}" ]]; then
+  echo "DA_CHANNEL not set!"
+  exit 1
+fi
+
+if [[ -z "${DA_HOSTNAME}" ]]; then
+  echo "DA_HOSTNAME not set!"
+  exit 1
+fi
+
+if [[ -z "${DA_NS1}" ]]; then
+  echo "DA_NS1 not set!"
+  exit 1
+fi
+
+if [[ -z "${DA_NS2}" ]]; then
+  echo "DA_NS2 not set!"
+  exit 1
+fi
+
+if [[ -z "${DA_FOREGROUND_CUSTOMBUILD}" ]]; then
+  echo "DA_FOREGROUND_CUSTOMBUILD not set!"
+  exit 1
+fi
+
+if [[ -z "${DA_SKIP_CSF}" ]]; then
+  echo "DA_SKIP_CSF not set!"
+  exit 1
+fi
+
+if [[ -z "${mysql_inst}" ]]; then
+  echo "mysql_inst not set!"
+  exit 1
+fi
+
+if [[ -z "${mysql}" ]]; then
+  echo "mysql not set!"
+  exit 1
+fi
+
+
 # Download and run the DirectAdmin install script.
 wget -O directadmin.sh https://download.directadmin.com/setup.sh
 chmod 755 directadmin.sh
