@@ -39,6 +39,12 @@ export DA_FOREGROUND_CUSTOMBUILD=yes
 export DA_SKIP_CSF=true
 export mysql_inst=mysql
 export mysql=8.0
+export php1_release=8.1
+export php2_release=8.0
+export php3_release=7.4
+export php1_mode=php-fpm
+export php2_mode=php-fpm
+export php3_mode=php-fpm
 
 if [[ -z "${DA_HOSTNAME}" ]]; then
   echo "DA_HOSTNAME not set!"
@@ -63,18 +69,6 @@ chmod 755 setup-standard.sh
 wget -O directadmin.sh https://download.directadmin.com/setup.sh
 chmod 755 directadmin.sh
 ./directadmin.sh $1
-
-# Change the installed PHP versions.
-cd /usr/local/directadmin/custombuild
-./build update
-./build set php1_release 8.1
-./build set php2_release 8.0
-./build set php3_release 7.4
-./build set php1_mode php-fpm
-./build set php2_mode php-fpm
-./build set php3_mode php-fpm
-./build php n
-./build rewrite_confs
 
 # Enable multi SSL support for the mail server.
 echo "mail_sni=1" >> /usr/local/directadmin/conf/directadmin.conf
