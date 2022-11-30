@@ -107,6 +107,7 @@ systemctl restart cron.service
 clear
 . /usr/local/directadmin/scripts/setup.txt
 onetimelogin=`/usr/local/directadmin/directadmin --create-login-url user=$2`
+echo "\033[0;31mDO NOT FORGET INSTALL CSF!\033[0m"
 echo "Hostname: $serverhostname"
 echo "Admin account username: $adminname"
 echo "Admin account password: $adminpass"
