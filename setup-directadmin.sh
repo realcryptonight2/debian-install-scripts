@@ -30,7 +30,7 @@ ns1host="ns1.${domainhostname}"
 ns2host="ns2.${domainhostname}"
 
 # Set variables to let DirectAdmin install correctly.
-export DA_CHANNEL=current
+export DA_CHANNEL=stable
 export DA_ADMIN_USER=$2
 export DA_HOSTNAME=$serverhostname
 export DA_NS1=$ns1host
@@ -72,8 +72,8 @@ chmod 755 directadmin.sh
 
 # Enable multi SSL support for the mail server.
 echo "mail_sni=1" >> /usr/local/directadmin/conf/directadmin.conf
-systemctl restart directadmin.service
-cd /usr/local/directadmin/custombuild
+systemctl restart directadmin
+cd /usr/local/directadmin/custombuild/
 ./build clean
 ./build update
 ./build set eximconf yes
@@ -83,15 +83,15 @@ cd /usr/local/directadmin/custombuild
 echo "action=rewrite&value=mail_sni" >> /usr/local/directadmin/data/task.queue
 
 # Install everything needed for the Pro Pack.
-cd /usr/local/directadmin/custombuild
+cd /usr/local/directadmin/custombuild/
 ./build composer
 ./build wp
 
 # Setup SSO for PHPMyAdmin.
 cd /usr/local/directadmin/
 ./directadmin set one_click_pma_login 1
-service directadmin restart
-cd custombuild
+systemctl restart directadmin
+cd /usr/local/directadmin/custombuild/
 ./build update
 ./build phpmyadmin
 
@@ -100,14 +100,14 @@ cp "${installdir}/files/mysql_update_cert.sh" /usr/local/directadmin/scripts/cus
 chmod 755 /usr/local/directadmin/scripts/custom/mysql_update_cert.sh
 chown root:root /usr/local/directadmin/scripts/custom/mysql_update_cert.sh
 echo "0 3	* * 1	root	/usr/local/directadmin/scripts/custom/mysql_update_cert.sh" >> /etc/crontab
-systemctl restart cron.service
+systemctl restart cron
 /usr/local/directadmin/scripts/custom/mysql_update_cert.sh
 
 # Clear the screen and display the login data.
 clear
 . /usr/local/directadmin/scripts/setup.txt
 onetimelogin=`/usr/local/directadmin/directadmin --create-login-url user=$2`
-echo "\033[0;31mDO NOT FORGET INSTALL CSF!\033[0m"
+echo "DO NOT FORGET TO INSTALL CSF!"
 echo "Hostname: $serverhostname"
 echo "Admin account username: $adminname"
 echo "Admin account password: $adminpass"
