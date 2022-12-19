@@ -45,7 +45,7 @@ export DA_HOSTNAME=$serverhostname
 export DA_NS1=$ns1host
 export DA_NS2=$ns2host
 export DA_FOREGROUND_CUSTOMBUILD=yes
-#export DA_SKIP_CSF=true
+export DA_SKIP_CSF=true
 export mysql_inst=mysql
 export mysql=8.0
 export php1_release=8.2
@@ -116,7 +116,7 @@ systemctl restart cron
 clear
 . /usr/local/directadmin/scripts/setup.txt
 onetimelogin=`/usr/local/directadmin/directadmin --create-login-url user=$2`
-#echo "DO NOT FORGET TO INSTALL CSF!"
+echo "DO NOT FORGET TO INSTALL CSF!"
 echo "Hostname: $serverhostname"
 echo "Admin account username: $adminname"
 echo "Admin account password: $adminpass"
