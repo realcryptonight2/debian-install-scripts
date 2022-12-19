@@ -1,10 +1,11 @@
 #!/bin/bash
 
+userid=`id -u`
 # Check if the script is run by the root user.
-if [ "$EUID" -ne 0 ]
+if [ "$userid" -ne 0 ]
   then
 	echo "Please only run this script as root."
-	echo "Users and sudo users are not allowed to run this script."
+	echo "Users are not allowed to run this script."
 	exit 1
 fi
 
