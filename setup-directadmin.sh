@@ -1,5 +1,13 @@
 #!/bin/bash
 
+# Check if the script is run by the root user.
+if [ "$EUID" -ne 0 ]
+  then
+	echo "Please only run this script as root."
+	echo "Users and sudo users are not allowed to run this script."
+	exit 1
+fi
+
 # Check if a license key is given.
 if [ -z "$1" ]
   then
@@ -17,7 +25,7 @@ fi
 # Run the install commands that install the packages required for this script and DirectAdmin.
 apt -y update
 apt -y upgrade
-apt -y install git curl dnsutils
+apt -y install git curl dnsutils rclone
 
 # Store current directory location for later.
 installdir=$(pwd)
@@ -30,18 +38,18 @@ ns1host="ns1.${domainhostname}"
 ns2host="ns2.${domainhostname}"
 
 # Set variables to let DirectAdmin install correctly.
-export DA_CHANNEL=stable
+export DA_CHANNEL=current
 export DA_ADMIN_USER=$2
 export DA_HOSTNAME=$serverhostname
 export DA_NS1=$ns1host
 export DA_NS2=$ns2host
 export DA_FOREGROUND_CUSTOMBUILD=yes
-export DA_SKIP_CSF=true
+#export DA_SKIP_CSF=true
 export mysql_inst=mysql
 export mysql=8.0
-export php1_release=8.1
-export php2_release=8.0
-export php3_release=7.4
+export php1_release=8.2
+export php2_release=8.1
+export php3_release=8.0
 export php1_mode=php-fpm
 export php2_mode=php-fpm
 export php3_mode=php-fpm
@@ -107,7 +115,7 @@ systemctl restart cron
 clear
 . /usr/local/directadmin/scripts/setup.txt
 onetimelogin=`/usr/local/directadmin/directadmin --create-login-url user=$2`
-echo "DO NOT FORGET TO INSTALL CSF!"
+#echo "DO NOT FORGET TO INSTALL CSF!"
 echo "Hostname: $serverhostname"
 echo "Admin account username: $adminname"
 echo "Admin account password: $adminpass"
