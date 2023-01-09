@@ -10,6 +10,7 @@ apt -y upgrade &&
 apt -y install git &&
 git clone https://github.com/realcryptonight/debian-install-scripts.git &&
 cd debian-install-scripts/ &&
+git checkout dev-script &&
 chmod 755 setup-directadmin.sh &&
 ./setup-directadmin.sh <Your directAdmin license here> <your admin username here>
 ```
