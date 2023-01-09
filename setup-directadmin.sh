@@ -39,7 +39,7 @@ ns1host="ns1.${domainhostname}"
 ns2host="ns2.${domainhostname}"
 
 # Set variables to let DirectAdmin install correctly.
-export DA_CHANNEL=current
+export DA_CHANNEL=stable
 export DA_ADMIN_USER=$2
 export DA_HOSTNAME=$serverhostname
 export DA_NS1=$ns1host
@@ -50,10 +50,8 @@ export mysql_inst=mysql
 export mysql=8.0
 export php1_release=8.2
 export php2_release=8.1
-export php3_release=8.0
 export php1_mode=php-fpm
 export php2_mode=php-fpm
-export php3_mode=php-fpm
 
 if [[ -z "${DA_HOSTNAME}" ]]; then
   echo "DA_HOSTNAME not set!"
@@ -111,6 +109,16 @@ chown root:root /usr/local/directadmin/scripts/custom/mysql_update_cert.sh
 echo "0 3	* * 1	root	/usr/local/directadmin/scripts/custom/mysql_update_cert.sh" >> /etc/crontab
 systemctl restart cron
 /usr/local/directadmin/scripts/custom/mysql_update_cert.sh
+
+# Add the S3 Object Storage backup scripts.
+cp "${installdir}/files/ftp_upload.php" /usr/local/directadmin/scripts/custom/
+cp "${installdir}/files/ftp_download.php" /usr/local/directadmin/scripts/custom/
+cp "${installdir}/files/ftp_list.php" /usr/local/directadmin/scripts/custom/
+chown diradmin:diradmin /usr/local/directadmin/scripts/custom/ftp_*.php
+chmod 700 /usr/local/directadmin/scripts/custom/ftp_*.php
+
+# Set CSF to yes.
+/usr/local/directadmin/custombuild/build set csf yes
 
 # Clear the screen and display the login data.
 clear
