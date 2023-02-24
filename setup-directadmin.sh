@@ -45,7 +45,7 @@ export DA_HOSTNAME=$serverhostname
 export DA_NS1=$ns1host
 export DA_NS2=$ns2host
 export DA_FOREGROUND_CUSTOMBUILD=yes
-export DA_SKIP_CSF=true
+#export DA_SKIP_CSF=true
 export mysql_inst=mysql
 export mysql=8.0
 export php1_release=8.2
@@ -110,21 +110,29 @@ echo "0 3	* * 1	root	/usr/local/directadmin/scripts/custom/mysql_update_cert.sh"
 systemctl restart cron
 /usr/local/directadmin/scripts/custom/mysql_update_cert.sh
 
-# Add the S3 Object Storage backup scripts.
+# Add the S3 Object Storage backup scripts and custom NS.
 cp "${installdir}/files/ftp_upload.php" /usr/local/directadmin/scripts/custom/
 cp "${installdir}/files/ftp_download.php" /usr/local/directadmin/scripts/custom/
 cp "${installdir}/files/ftp_list.php" /usr/local/directadmin/scripts/custom/
+cp "${installdir}/files/dns_ns.conf" /usr/local/directadmin/data/templates/custom/
 chown diradmin:diradmin /usr/local/directadmin/scripts/custom/ftp_*.php
+chown diradmin:diradmin /usr/local/directadmin/data/templates/custom/dns_ns.conf
 chmod 700 /usr/local/directadmin/scripts/custom/ftp_*.php
+chmod 644 /usr/local/directadmin/data/templates/custom/dns_ns.conf
 
 # Set CSF to yes.
-/usr/local/directadmin/custombuild/build set csf yes
+#/usr/local/directadmin/custombuild/build set csf yes
+
+# Change some DirectAdmin settings that should be the default.
+/usr/local/directadmin/directadmin config-set allow_backup_encryption 1
+/usr/local/directadmin/directadmin config-set backup_ftp_md5 1
+systemctl restart directadmin
 
 # Clear the screen and display the login data.
 clear
 . /usr/local/directadmin/scripts/setup.txt
 onetimelogin=`/usr/local/directadmin/directadmin --create-login-url user=$2`
-echo "DO NOT FORGET TO INSTALL CSF!"
+#echo "DO NOT FORGET TO INSTALL CSF!"
 echo "Hostname: $serverhostname"
 echo "Admin account username: $adminname"
 echo "Admin account password: $adminpass"
