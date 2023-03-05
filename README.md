@@ -3,10 +3,10 @@
 These are the debian scripts I use.
 
 # Pre install requirements.
-To use this install script you need to create a config.cnf file.\n
-This config file will store your DirectAdmin license key and username.\n
-\n
-First create a file and call it config.cnf\n
+To use this install script you need to create a config.cnf file.
+This config file will store your DirectAdmin license key and username.
+
+First create a file and call it config.cnf
 Then add the following to the config.cnf file:
 ```
 # DirectAdmin settings
