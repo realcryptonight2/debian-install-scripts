@@ -11,7 +11,7 @@ chmod 777 /etc/update-motd.d/*
 # Update the server if needed and setup the SSH server.
 apt update
 apt -y upgrade
-apt -y install figlet vim zip unzip openssh-server
+apt -y install figlet
 sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin prohibit-password/g' /etc/ssh/sshd_config
 sed -i 's/PermitRootLogin yes/PermitRootLogin prohibit-password/g' /etc/ssh/sshd_config
 sed -i 's/#PasswordAuthentication yes/PasswordAuthentication no/g' /etc/ssh/sshd_config

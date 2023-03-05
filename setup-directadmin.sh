@@ -1,6 +1,7 @@
 #!/bin/bash
 
 userid=`id -u`
+
 # Check if the script is run by the root user.
 if [ "$userid" -ne 0 ]
   then
@@ -9,24 +10,37 @@ if [ "$userid" -ne 0 ]
 	exit 1
 fi
 
+# Check if the config file exist.
+if [ ! -f "config.cnf" ];
+then
+	echo "config.cnf does not exist."
+	exit 1
+fi
+
+. ./config.cnf
+
 # Check if a license key is given.
-if [ -z "$1" ]
+if [ -z "$directadmin_license_key" ]
   then
-    echo "./setup-directadmin.sh <DirectAdmin license key> <admin username>"
+    echo "config.cnf is not configured correctly. Missing directadmin_license_key variable."
 	exit 1
 fi
 
 # Check if a admin username is given.
-if [ -z "$2" ]
+if [ -z "$directadmin_admin_username" ]
   then
-    echo "./setup-directadmin.sh <DirectAdmin license key> <admin username>"
+    echo "config.cnf is not configured correctly. Missing directadmin_admin_username variable."
 	exit 1
 fi
 
+# Run the default install.
+chmod 755 setup-standard.sh
+./setup-standard.sh
+
 # Run the install commands that install the packages required for this script and DirectAdmin.
-apt -y update
+apt update
 apt -y upgrade
-apt -y install git curl dnsutils rclone
+apt -y install git curl dnsutils rclone zip unzip
 
 # Store current directory location for later.
 installdir=$(pwd)
@@ -40,12 +54,11 @@ ns2host="ns2.${domainhostname}"
 
 # Set variables to let DirectAdmin install correctly.
 export DA_CHANNEL=stable
-export DA_ADMIN_USER=$2
+export DA_ADMIN_USER=$directadmin_admin_username
 export DA_HOSTNAME=$serverhostname
 export DA_NS1=$ns1host
 export DA_NS2=$ns2host
 export DA_FOREGROUND_CUSTOMBUILD=yes
-#export DA_SKIP_CSF=true
 export mysql_inst=mysql
 export mysql=8.0
 export php1_release=8.2
@@ -53,86 +66,48 @@ export php2_release=8.1
 export php1_mode=php-fpm
 export php2_mode=php-fpm
 
-if [[ -z "${DA_HOSTNAME}" ]]; then
-  echo "DA_HOSTNAME not set!"
-  exit 1
-fi
-
-if [[ -z "${DA_NS1}" ]]; then
-  echo "DA_NS1 not set!"
-  exit 1
-fi
-
-if [[ -z "${DA_NS2}" ]]; then
-  echo "DA_NS2 not set!"
-  exit 1
-fi
-
-# Run the default install.
-chmod 755 setup-standard.sh
-./setup-standard.sh
-
 # Download and run the DirectAdmin install script.
 wget -O directadmin.sh https://download.directadmin.com/setup.sh
 chmod 755 directadmin.sh
-./directadmin.sh $1
-
-# Enable multi SSL support for the mail server.
-echo "mail_sni=1" >> /usr/local/directadmin/conf/directadmin.conf
-systemctl restart directadmin
-cd /usr/local/directadmin/custombuild/
-./build clean
-./build update
-./build set eximconf yes
-./build set dovecot_conf yes
-./build exim_conf
-./build dovecot_conf
-echo "action=rewrite&value=mail_sni" >> /usr/local/directadmin/data/task.queue
-
-# Install everything needed for the Pro Pack.
-cd /usr/local/directadmin/custombuild/
-./build composer
-./build wp
-
-# Setup SSO for PHPMyAdmin.
-cd /usr/local/directadmin/
-./directadmin set one_click_pma_login 1
-systemctl restart directadmin
-cd /usr/local/directadmin/custombuild/
-./build update
-./build phpmyadmin
-
-# Add the mysql script that allows MySQL to use the same SSL Certificate as the host.
-cp "${installdir}/files/mysql_update_cert.sh" /usr/local/directadmin/scripts/custom/
-chmod 755 /usr/local/directadmin/scripts/custom/mysql_update_cert.sh
-chown root:root /usr/local/directadmin/scripts/custom/mysql_update_cert.sh
-echo "0 3	* * 1	root	/usr/local/directadmin/scripts/custom/mysql_update_cert.sh" >> /etc/crontab
-systemctl restart cron
-/usr/local/directadmin/scripts/custom/mysql_update_cert.sh
-
-# Add the S3 Object Storage backup scripts and custom NS.
-cp "${installdir}/files/ftp_upload.php" /usr/local/directadmin/scripts/custom/
-cp "${installdir}/files/ftp_download.php" /usr/local/directadmin/scripts/custom/
-cp "${installdir}/files/ftp_list.php" /usr/local/directadmin/scripts/custom/
-cp "${installdir}/files/dns_ns.conf" /usr/local/directadmin/data/templates/custom/
-chown diradmin:diradmin /usr/local/directadmin/scripts/custom/ftp_*.php
-chown diradmin:diradmin /usr/local/directadmin/data/templates/custom/dns_ns.conf
-chmod 700 /usr/local/directadmin/scripts/custom/ftp_*.php
-chmod 644 /usr/local/directadmin/data/templates/custom/dns_ns.conf
-
-# Set CSF to yes.
-#/usr/local/directadmin/custombuild/build set csf yes
+./directadmin.sh $directadmin_license_key
 
 # Change some DirectAdmin settings that should be the default.
 /usr/local/directadmin/directadmin config-set allow_backup_encryption 1
 /usr/local/directadmin/directadmin config-set backup_ftp_md5 1
+/usr/local/directadmin/directadmin config-set mail_sni 1
+/usr/local/directadmin/directadmin set one_click_pma_login 1
 systemctl restart directadmin
+/usr/local/directadmin/custombuild/build clean
+/usr/local/directadmin/custombuild/build update
+/usr/local/directadmin/custombuild/build set eximconf yes
+/usr/local/directadmin/custombuild/build set dovecot_conf yes
+/usr/local/directadmin/custombuild/build exim_conf
+/usr/local/directadmin/custombuild/build dovecot_conf
+/usr/local/directadmin/custombuild/build phpmyadmin
+/usr/local/directadmin/custombuild/build composer
+/usr/local/directadmin/custombuild/build wp
+echo "action=rewrite&value=mail_sni" >> /usr/local/directadmin/data/task.queue
+
+# Add custom scripts and configuration files.
+cp "${installdir}/files/mysql_update_cert.sh" /usr/local/directadmin/scripts/custom/
+cp "${installdir}/files/ftp_upload.php" /usr/local/directadmin/scripts/custom/
+cp "${installdir}/files/ftp_download.php" /usr/local/directadmin/scripts/custom/
+cp "${installdir}/files/ftp_list.php" /usr/local/directadmin/scripts/custom/
+cp "${installdir}/files/dns_ns.conf" /usr/local/directadmin/data/templates/custom/
+chmod 755 /usr/local/directadmin/scripts/custom/mysql_update_cert.sh
+chmod 700 /usr/local/directadmin/scripts/custom/ftp_*.php
+chmod 644 /usr/local/directadmin/data/templates/custom/dns_ns.conf
+chown root:root /usr/local/directadmin/scripts/custom/mysql_update_cert.sh
+chown diradmin:diradmin /usr/local/directadmin/scripts/custom/ftp_*.php
+chown diradmin:diradmin /usr/local/directadmin/data/templates/custom/dns_ns.conf
+echo "0 3	* * 1	root	/usr/local/directadmin/scripts/custom/mysql_update_cert.sh" >> /etc/crontab
+systemctl restart cron
+/usr/local/directadmin/scripts/custom/mysql_update_cert.sh
 
 # Clear the screen and display the login data.
 clear
 . /usr/local/directadmin/scripts/setup.txt
-onetimelogin=`/usr/local/directadmin/directadmin --create-login-url user=$2`
-#echo "DO NOT FORGET TO INSTALL CSF!"
+onetimelogin=`/usr/local/directadmin/directadmin --create-login-url user=$directadmin_admin_username`
 echo "Hostname: $serverhostname"
 echo "Admin account username: $adminname"
 echo "Admin account password: $adminpass"

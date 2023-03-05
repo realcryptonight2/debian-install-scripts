@@ -2,15 +2,29 @@
 # debian-install-scripts
 These are the debian scripts I use.
 
+# Pre install requirements.
+To use this install script you need to create a config.cnf file.\n
+This config file will store your DirectAdmin license key and username.\n
+\n
+First create a file and call it config.cnf\n
+Then add the following to the config.cnf file:
+```
+# DirectAdmin settings
+directadmin_license_key="<your DirectAdmin License key here>"
+directadmin_admin_username="<your DirectAdmin admin username here>"
+```
+After that keep note of the file location as you wu=ill need to copy this file into the cloned repository.
+
 # Install DirectAdmin command
-To install DirectAdmin please run the following command:  
+To install DirectAdmin please run the following command(s):  
 ```
 apt update &&
 apt -y upgrade &&
 apt -y install git &&
 git clone https://github.com/realcryptonight/debian-install-scripts.git &&
+cp ./config.cnf ./debian-install-scripts/
 cd debian-install-scripts/ &&
 git checkout dev-script &&
 chmod 755 setup-directadmin.sh &&
-./setup-directadmin.sh <Your directAdmin license here> <your admin username here>
+./setup-directadmin.sh
 ```
