@@ -11,7 +11,10 @@ Then add the following to the config.cnf file:
 ```
 # DirectAdmin settings
 directadmin_license_key="<your DirectAdmin License key here>"
-directadmin_admin_username="<your DirectAdmin admin username here>"
+directadmin_admin_username="<your DirectAdmin admin username here> (Optional)"
+directadmin_custom_config_ns="<set to 1 to enable> (Optional)"
+directadmin_custom_config_mysql="<set to 1 to enable> (Optional)"
+directadmin_custom_config_ftp="<set to 1 to enable> (Optional)"
 ```
 After that keep note of the file location as you wu=ill need to copy this file into the cloned repository.
 
