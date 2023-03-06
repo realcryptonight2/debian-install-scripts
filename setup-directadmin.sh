@@ -19,17 +19,10 @@ fi
 
 . ./config.cnf
 
-# Check if a license key is given.
+# Check if a license key is provided in the config file.
 if [ -z "$directadmin_license_key" ]
   then
     echo "config.cnf is not configured correctly. Missing directadmin_license_key variable."
-	exit 1
-fi
-
-# Check if a admin username is given.
-if [ -z "$directadmin_admin_username" ]
-  then
-    echo "config.cnf is not configured correctly. Missing directadmin_admin_username variable."
 	exit 1
 fi
 
@@ -54,7 +47,10 @@ ns2host="ns2.${domainhostname}"
 
 # Set variables to let DirectAdmin install correctly.
 export DA_CHANNEL=stable
-export DA_ADMIN_USER=$directadmin_admin_username
+if [ ! -z ${directadmin_admin_username} ] && [ ! ${#directadmin_admin_username} -gt 10 ]
+	then
+		export DA_ADMIN_USER=$directadmin_admin_username
+fi
 export DA_HOSTNAME=$serverhostname
 export DA_NS1=$ns1host
 export DA_NS2=$ns2host
@@ -88,21 +84,38 @@ systemctl restart directadmin
 /usr/local/directadmin/custombuild/build wp
 echo "action=rewrite&value=mail_sni" >> /usr/local/directadmin/data/task.queue
 
-# Add custom scripts and configuration files.
-cp "${installdir}/files/mysql_update_cert.sh" /usr/local/directadmin/scripts/custom/
-cp "${installdir}/files/ftp_upload.php" /usr/local/directadmin/scripts/custom/
-cp "${installdir}/files/ftp_download.php" /usr/local/directadmin/scripts/custom/
-cp "${installdir}/files/ftp_list.php" /usr/local/directadmin/scripts/custom/
-cp "${installdir}/files/dns_ns.conf" /usr/local/directadmin/data/templates/custom/
-chmod 755 /usr/local/directadmin/scripts/custom/mysql_update_cert.sh
-chmod 700 /usr/local/directadmin/scripts/custom/ftp_*.php
-chmod 644 /usr/local/directadmin/data/templates/custom/dns_ns.conf
-chown root:root /usr/local/directadmin/scripts/custom/mysql_update_cert.sh
-chown diradmin:diradmin /usr/local/directadmin/scripts/custom/ftp_*.php
-chown diradmin:diradmin /usr/local/directadmin/data/templates/custom/dns_ns.conf
-echo "0 3	* * 1	root	/usr/local/directadmin/scripts/custom/mysql_update_cert.sh" >> /etc/crontab
-systemctl restart cron
-/usr/local/directadmin/scripts/custom/mysql_update_cert.sh
+# Check if the custom ns script variable is set and is set to 1.
+if [ ! -z ${directadmin_custom_config_ns} ] && [ ${directadmin_admin_username} = "1" ]
+	then
+		cp "${installdir}/files/dns_ns.conf" /usr/local/directadmin/data/templates/custom/
+		chmod 644 /usr/local/directadmin/data/templates/custom/dns_ns.conf
+		chown diradmin:diradmin /usr/local/directadmin/data/templates/custom/dns_ns.conf
+fi
+
+# Check if the custom mysql script variable is set and is set to 1.
+if [ ! -z ${directadmin_custom_config_mysql} ] && [ ${directadmin_custom_config_mysql} = "1" ]
+	then
+		cp "${installdir}/files/mysql_update_cert.sh" /usr/local/directadmin/scripts/custom/
+		chmod 755 /usr/local/directadmin/scripts/custom/mysql_update_cert.sh
+		chown root:root /usr/local/directadmin/scripts/custom/mysql_update_cert.sh
+		echo "0 3	* * 1	root	/usr/local/directadmin/scripts/custom/mysql_update_cert.sh" >> /etc/crontab
+		systemctl restart cron
+		/usr/local/directadmin/scripts/custom/mysql_update_cert.sh
+fi
+
+# Check if the custom ftp script variable is set and is set to 1.
+if [ ! -z ${directadmin_custom_config_ftp} ] && [ ${directadmin_custom_config_ftp} = "1" ]
+	then
+		cp "${installdir}/files/ftp_upload.php" /usr/local/directadmin/scripts/custom/
+		cp "${installdir}/files/ftp_download.php" /usr/local/directadmin/scripts/custom/
+		cp "${installdir}/files/ftp_list.php" /usr/local/directadmin/scripts/custom/
+		chmod 700 /usr/local/directadmin/scripts/custom/ftp_upload.php
+		chmod 700 /usr/local/directadmin/scripts/custom/ftp_download.php
+		chmod 700 /usr/local/directadmin/scripts/custom/ftp_list.php
+		chown diradmin:diradmin /usr/local/directadmin/scripts/custom/ftp_upload.php
+		chown diradmin:diradmin /usr/local/directadmin/scripts/custom/ftp_download.php
+		chown diradmin:diradmin /usr/local/directadmin/scripts/custom/ftp_list.php
+fi
 
 # Clear the screen and display the login data.
 clear
