@@ -85,7 +85,7 @@ systemctl restart directadmin
 echo "action=rewrite&value=mail_sni" >> /usr/local/directadmin/data/task.queue
 
 # Check if the custom ns script variable is set and is set to 1.
-if [ ! -z ${directadmin_custom_config_ns} ] && [ ${directadmin_admin_username} = "1" ]
+if [ ! -z ${directadmin_custom_config_ns} ] && [ ${directadmin_custom_config_ns} = "1" ]
 	then
 		cp "${installdir}/files/dns_ns.conf" /usr/local/directadmin/data/templates/custom/
 		chmod 644 /usr/local/directadmin/data/templates/custom/dns_ns.conf
