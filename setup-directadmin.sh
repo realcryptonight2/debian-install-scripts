@@ -125,7 +125,7 @@ onetimelogin=`/usr/local/directadmin/directadmin --create-login-url user=$direct
 if [ ! -z "${directadmin_setup_headless_email}" ]
 	then
 		echo "{\"hostname\" : \"$serverhostname\", \"admin_username\" : \"$adminname\", \"admin_password\" : \"$adminpass\", \"login_url\" : \"$onetimelogin\", \"headless_email\" : \"$directadmin_setup_headless_email\"}" > "${installdir}/files/login.json"
-		composer require phpmailer/phpmailer
+		composer require phpmailer/phpmailer --no-interaction
 		php "${installdir}/files/mailer.php"
 		rm "${installdir}/files/login.json"
 	else
