@@ -20,9 +20,9 @@ fi
 . ./config.cnf
 
 # Check if a license key is provided in the config file.
-if [ -z "$directadmin_license_key" ]
+if [ -z "$directadmin_setup_license_key" ]
   then
-    echo "config.cnf is not configured correctly. Missing directadmin_license_key variable."
+    echo "config.cnf is not configured correctly. Missing directadmin_setup_license_key variable."
 	exit 1
 fi
 
@@ -47,9 +47,9 @@ ns2host="ns2.${domainhostname}"
 
 # Set variables to let DirectAdmin install correctly.
 export DA_CHANNEL=stable
-if [ ! -z ${directadmin_admin_username} ] && [ ! ${#directadmin_admin_username} -gt 10 ]
+if [ ! -z "${directadmin_setup_admin_username}" ] && [ ! "${#directadmin_setup_admin_username}" -gt 10 ]
 	then
-		export DA_ADMIN_USER=$directadmin_admin_username
+		export DA_ADMIN_USER=$directadmin_setup_admin_username
 fi
 export DA_HOSTNAME=$serverhostname
 export DA_NS1=$ns1host
@@ -65,7 +65,7 @@ export php2_mode=php-fpm
 # Download and run the DirectAdmin install script.
 wget -O directadmin.sh https://download.directadmin.com/setup.sh
 chmod 755 directadmin.sh
-./directadmin.sh $directadmin_license_key
+./directadmin.sh $directadmin_setup_license_key
 
 # Change some DirectAdmin settings that should be the default.
 /usr/local/directadmin/directadmin config-set allow_backup_encryption 1
@@ -85,7 +85,7 @@ systemctl restart directadmin
 echo "action=rewrite&value=mail_sni" >> /usr/local/directadmin/data/task.queue
 
 # Check if the custom ns script variable is set and is set to 1.
-if [ ! -z ${directadmin_custom_config_ns} ] && [ ${directadmin_custom_config_ns} = "1" ]
+if [ ! -z "${directadmin_custom_config_ns}" ] && [ "${directadmin_custom_config_ns}" = "1" ]
 	then
 		mkdir /usr/local/directadmin/data/templates/custom
 		cp "${installdir}/files/dns_ns.conf" /usr/local/directadmin/data/templates/custom/
@@ -94,7 +94,7 @@ if [ ! -z ${directadmin_custom_config_ns} ] && [ ${directadmin_custom_config_ns}
 fi
 
 # Check if the custom mysql script variable is set and is set to 1.
-if [ ! -z ${directadmin_custom_config_mysql} ] && [ ${directadmin_custom_config_mysql} = "1" ]
+if [ ! -z "${directadmin_custom_config_mysql}" ] && [ "${directadmin_custom_config_mysql}" = "1" ]
 	then
 		cp "${installdir}/files/mysql_update_cert.sh" /usr/local/directadmin/scripts/custom/
 		chmod 755 /usr/local/directadmin/scripts/custom/mysql_update_cert.sh
@@ -105,7 +105,7 @@ if [ ! -z ${directadmin_custom_config_mysql} ] && [ ${directadmin_custom_config_
 fi
 
 # Check if the custom ftp script variable is set and is set to 1.
-if [ ! -z ${directadmin_custom_config_ftp} ] && [ ${directadmin_custom_config_ftp} = "1" ]
+if [ ! -z "${directadmin_custom_config_ftp}" ] && [ "${directadmin_custom_config_ftp}" = "1" ]
 	then
 		cp "${installdir}/files/ftp_upload.php" /usr/local/directadmin/scripts/custom/
 		cp "${installdir}/files/ftp_download.php" /usr/local/directadmin/scripts/custom/
@@ -118,13 +118,21 @@ if [ ! -z ${directadmin_custom_config_ftp} ] && [ ${directadmin_custom_config_ft
 		chown diradmin:diradmin /usr/local/directadmin/scripts/custom/ftp_list.php
 fi
 
-# Clear the screen and display the login data.
-clear
 . /usr/local/directadmin/scripts/setup.txt
-onetimelogin=`/usr/local/directadmin/directadmin --create-login-url user=$directadmin_admin_username`
-echo "Hostname: $serverhostname"
-echo "Admin account username: $adminname"
-echo "Admin account password: $adminpass"
-echo "One-Time login URL: $onetimelogin"
+onetimelogin=`/usr/local/directadmin/directadmin --create-login-url user=$directadmin_setup_admin_username`
+
+# Check if the headless install email address variable is set.
+if [ ! -z "${directadmin_setup_headless_email}" ]
+	then
+		echo "{\"hostname\" : \"$serverhostname\", \"admin_username\" : \"$adminname\", \"admin_password\" : \"$adminpass\", \"login_url\" : \"$onetimelogin\", \"headless_email\" : \"$directadmin_setup_headless_email\"}" > "${installdir}/files/login.json"
+		composer require phpmailer/phpmailer
+		php "${installdir}/files/mailer.php"
+	else
+		clear
+		echo "Hostname: $serverhostname"
+		echo "Admin account username: $adminname"
+		echo "Admin account password: $adminpass"
+		echo "One-Time login URL: $onetimelogin"
+fi
 
 exit 0
