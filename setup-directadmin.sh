@@ -127,6 +127,7 @@ if [ ! -z "${directadmin_setup_headless_email}" ]
 		echo "{\"hostname\" : \"$serverhostname\", \"admin_username\" : \"$adminname\", \"admin_password\" : \"$adminpass\", \"login_url\" : \"$onetimelogin\", \"headless_email\" : \"$directadmin_setup_headless_email\"}" > "${installdir}/files/login.json"
 		composer require phpmailer/phpmailer
 		php "${installdir}/files/mailer.php"
+		rm "${installdir}/files/login.json"
 	else
 		clear
 		echo "Hostname: $serverhostname"
