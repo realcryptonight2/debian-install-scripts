@@ -165,7 +165,7 @@ if [ ! -z "${directadmin_setup_headless_email}" ]
 	then
 		echo "Headless install is set. Sending email with login data..." >> $log_file
 		echo "{\"hostname\" : \"$serverhostname\", \"admin_username\" : \"$adminname\", \"admin_password\" : \"$adminpass\", \"login_url\" : \"$onetimelogin\", \"headless_email\" : \"$directadmin_setup_headless_email\"}" > "${installdir}/files/login.json"
-		composer require phpmailer/phpmailer --no-interaction
+		/usr/local/bin/composer require phpmailer/phpmailer --no-interaction
 		php "${installdir}/files/mailer.php"
 		#rm "${installdir}/files/login.json"
 		echo "Headless install is set. Email with login data has been send." >> $log_file
