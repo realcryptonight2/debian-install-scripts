@@ -1,6 +1,7 @@
 #!/bin/bash
 
-log_file=`$(pwd)/install.log`
+installdir=$(pwd)
+log_file="${installdir}/install.log"
 
 echo "Installing standard configurations..." >> $log_file
 
