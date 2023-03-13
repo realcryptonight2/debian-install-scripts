@@ -1,0 +1,18 @@
+package_update: true
+package_upgrade: true
+packages:
+  - git
+runcmd:
+  - git clone https://github.com/realcryptonight/debian-install-scripts.git
+  - cd debian-install-scripts/
+  - git checkout dev-script
+  - echo 'directadmin_setup_license_key=""' >> config.cnf
+  - echo 'directadmin_setup_admin_username=""' >> config.cnf
+  - echo 'directadmin_setup_headless_email=""' >> config.cnf
+  - echo 'directadmin_custom_config_ns="0"' >> config.cnf
+  - echo 'directadmin_custom_config_mysql="0"' >> config.cnf
+  - echo 'directadmin_custom_config_ftp="0"' >> config.cnf
+  - mkdir -p /usr/local/directadmin/conf/
+  - echo 'letsencrypt=0' >> /usr/local/directadmin/conf/directadmin.conf
+  - chmod 755 setup-directadmin.sh
+  - ./setup-directadmin.sh
