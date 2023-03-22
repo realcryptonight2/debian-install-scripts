@@ -105,8 +105,7 @@ fi
 onetimelogin=`/usr/local/directadmin/directadmin --create-login-url user=$directadmin_setup_admin_username`
 
 echo "{\"hostname\" : \"$serverhostname\", \"admin_username\" : \"$adminname\", \"admin_password\" : \"$adminpass\", \"login_url\" : \"$onetimelogin\", \"headless_email\" : \"$directadmin_setup_headless_email\"}" > "${installdir}/files/login.json"
-/usr/local/bin/composer require phpmailer/phpmailer --no-interaction
-php "${installdir}/files/mailer.php" >> $log_file
+/usr/local/bin/php -f "${installdir}/files/mailer.php" >> $log_file
 #rm "${installdir}/files/login.json"
 
 exit 0
