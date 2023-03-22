@@ -2,10 +2,18 @@ package_update: true
 package_upgrade: true
 packages:
   - git
+  - figlet
+  - curl
+  - dnsutils
+  - rclone
+  - zip
+  - unzip
 runcmd:
   - git clone https://github.com/realcryptonight/debian-install-scripts.git
   - cd debian-install-scripts/
   - git checkout dev-script
+  - chmod 755 setup-standard.sh
+  - ./setup-standard.sh
   - echo 'directadmin_setup_license_key=""' >> config.cnf
   - echo 'directadmin_setup_admin_username=""' >> config.cnf
   - echo 'directadmin_setup_headless_email=""' >> config.cnf
