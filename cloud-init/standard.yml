@@ -6,6 +6,5 @@ packages:
 runcmd:
   - git clone https://github.com/realcryptonight/debian-install-scripts.git
   - cd debian-install-scripts/
-  - git checkout dev-script
   - chmod 755 setup-standard.sh
-  - ./setup-standard.sh 1
+  - ./setup-standard.sh

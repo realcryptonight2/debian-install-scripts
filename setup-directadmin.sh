@@ -13,10 +13,19 @@ fi
 
 . ./config.cnf
 
+# Check if the config file contains the DirectAdmin license key.
 if [ -z "${directadmin_setup_license_key}" ]
 	then
 		echo "Failed to install DirectAdmin." >> $log_file
 		echo "No DirectAdmin license key was set in the config.cnf file." >> $log_file
+		exit 1
+fi
+
+# Check if there is a headless email.
+if [ -z "${directadmin_setup_headless_email}" ]
+	then
+		echo "Failed to install DirectAdmin." >> $log_file
+		echo "No headless email was set in the config.cnf file." >> $log_file
 		exit 1
 fi
 
@@ -44,9 +53,9 @@ export php2_release=8.1
 export php1_mode=php-fpm
 export php2_mode=php-fpm
 
+# Download and install DirectAdmin.
 wget -O directadmin.sh https://download.directadmin.com/setup.sh
 chmod 755 directadmin.sh
-
 ./directadmin.sh $directadmin_setup_license_key
 
 # Change some DirectAdmin settings that should be the default.
@@ -66,38 +75,38 @@ systemctl restart directadmin
 /usr/local/directadmin/custombuild/build wp
 echo "action=rewrite&value=mail_sni" >> /usr/local/directadmin/data/task.queue
 
-# Check if the custom ns script variable is set and is set to 1.
-if [ ! -z "${directadmin_custom_config_ns}" ] && [ "${directadmin_custom_config_ns}" = "1" ]
-	then
-		mkdir /usr/local/directadmin/data/templates/custom
-		cp "${installdir}/files/dns_ns.conf" /usr/local/directadmin/data/templates/custom/
-		chmod 644 /usr/local/directadmin/data/templates/custom/dns_ns.conf
-		chown diradmin:diradmin /usr/local/directadmin/data/templates/custom/dns_ns.conf
+# Check if there is a custom DNS file that needs to be used.
+if [ -f "${installdir}/files/dns_ns.conf" ];
+then
+	mkdir /usr/local/directadmin/data/templates/custom
+	cp "${installdir}/files/dns_ns.conf" /usr/local/directadmin/data/templates/custom/
+	chmod 644 /usr/local/directadmin/data/templates/custom/dns_ns.conf
+	chown diradmin:diradmin /usr/local/directadmin/data/templates/custom/dns_ns.conf
 fi
 
-# Check if the custom mysql script variable is set and is set to 1.
-if [ ! -z "${directadmin_custom_config_mysql}" ] && [ "${directadmin_custom_config_mysql}" = "1" ]
-	then
-		cp "${installdir}/files/mysql_update_cert.sh" /usr/local/directadmin/scripts/custom/
-		chmod 755 /usr/local/directadmin/scripts/custom/mysql_update_cert.sh
-		chown root:root /usr/local/directadmin/scripts/custom/mysql_update_cert.sh
-		echo "0 3	* * 1	root	/usr/local/directadmin/scripts/custom/mysql_update_cert.sh" >> /etc/crontab
-		systemctl restart cron
-		/usr/local/directadmin/scripts/custom/mysql_update_cert.sh
+# Check if there is a custom MySQL script that needs to be installed.
+if [ -f "${installdir}/files/mysql_update_cert.sh" ];
+then
+	cp "${installdir}/files/mysql_update_cert.sh" /usr/local/directadmin/scripts/custom/
+	chmod 755 /usr/local/directadmin/scripts/custom/mysql_update_cert.sh
+	chown root:root /usr/local/directadmin/scripts/custom/mysql_update_cert.sh
+	echo "0 3	* * 1	root	/usr/local/directadmin/scripts/custom/mysql_update_cert.sh" >> /etc/crontab
+	systemctl restart cron
+	/usr/local/directadmin/scripts/custom/mysql_update_cert.sh
 fi
 
-# Check if the custom ftp script variable is set and is set to 1.
-if [ ! -z "${directadmin_custom_config_ftp}" ] && [ "${directadmin_custom_config_ftp}" = "1" ]
-	then
-		cp "${installdir}/files/ftp_upload.php" /usr/local/directadmin/scripts/custom/
-		cp "${installdir}/files/ftp_download.php" /usr/local/directadmin/scripts/custom/
-		cp "${installdir}/files/ftp_list.php" /usr/local/directadmin/scripts/custom/
-		chmod 700 /usr/local/directadmin/scripts/custom/ftp_upload.php
-		chmod 700 /usr/local/directadmin/scripts/custom/ftp_download.php
-		chmod 700 /usr/local/directadmin/scripts/custom/ftp_list.php
-		chown diradmin:diradmin /usr/local/directadmin/scripts/custom/ftp_upload.php
-		chown diradmin:diradmin /usr/local/directadmin/scripts/custom/ftp_download.php
-		chown diradmin:diradmin /usr/local/directadmin/scripts/custom/ftp_list.php
+# Check if there is a custom FTP script that needs to be installed.
+if [ -f "${installdir}/files/ftp_upload.php" ] && [ -f "${installdir}/files/ftp_download.php" ] && [ -f "${installdir}/files/ftp_list.php" ];
+then
+	cp "${installdir}/files/ftp_upload.php" /usr/local/directadmin/scripts/custom/
+	cp "${installdir}/files/ftp_download.php" /usr/local/directadmin/scripts/custom/
+	cp "${installdir}/files/ftp_list.php" /usr/local/directadmin/scripts/custom/
+	chmod 700 /usr/local/directadmin/scripts/custom/ftp_upload.php
+	chmod 700 /usr/local/directadmin/scripts/custom/ftp_download.php
+	chmod 700 /usr/local/directadmin/scripts/custom/ftp_list.php
+	chown diradmin:diradmin /usr/local/directadmin/scripts/custom/ftp_upload.php
+	chown diradmin:diradmin /usr/local/directadmin/scripts/custom/ftp_download.php
+	chown diradmin:diradmin /usr/local/directadmin/scripts/custom/ftp_list.php
 fi
 
 
