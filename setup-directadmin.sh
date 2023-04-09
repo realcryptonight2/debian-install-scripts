@@ -1,100 +1,120 @@
 #!/bin/bash
 
-# Check if a license key is given.
-if [ -z "$1" ]
-  then
-    echo "./setup-directadmin.sh <DirectAdmin license key>"
+installdir=$(pwd)
+log_file="/root/install.log"
+
+# Check if the config file exist.
+if [ ! -f "config.cnf" ];
+then
+	echo "Failed to install DirectAdmin." >> $log_file
+	echo "config.cnf does not exist." >> $log_file
 	exit 1
 fi
 
-# Run the default install.
-chmod 755 setup-standard.sh
-./setup-standard.sh
+. ./config.cnf
 
-# Run common pre-install commands
-apt -y update
-apt -y upgrade
-apt -y install gcc g++ make flex bison openssl libssl-dev perl perl-base perl-modules libperl-dev libperl4-corelibs-perl libwww-perl libaio1 libaio-dev zlib1g zlib1g-dev libcap-dev cron bzip2 zip automake autoconf libtool cmake pkg-config python libdb-dev libsasl2-dev libncurses5 libncurses5-dev libsystemd-dev bind9 dnsutils quota patch logrotate rsyslog libc6-dev libexpat1-dev libcrypt-openssl-rsa-perl libnuma-dev libnuma1
+# Check if the config file contains the DirectAdmin license key.
+if [ -z "${directadmin_setup_license_key}" ]
+	then
+		echo "Failed to install DirectAdmin." >> $log_file
+		echo "No DirectAdmin license key was set in the config.cnf file." >> $log_file
+		exit 1
+fi
 
-# Get the server IP for reverse DNS lookup.
-serverip=`hostname -I | awk '{print $1}'`
+# Check if there is a headless email.
+if [ -z "${directadmin_setup_headless_email}" ]
+	then
+		echo "Failed to install DirectAdmin." >> $log_file
+		echo "No headless email was set in the config.cnf file." >> $log_file
+		exit 1
+fi
 
-# Get server hostname from reverse DNS lookup.
-serverhostname=`dig -x ${serverip} +short | sed 's/\.[^.]*$//'`
-
-# Get just the domain name.
-domainhostname=`echo $serverhostname | sed 's/^[^.]*.//g'`
-
-# NS hostnames.
+# Get the hostname and domain name for NS records.
+serverip=$(hostname -I | awk '{print $1}')
+serverhostname=$(dig -x $serverip +short | sed 's/\.[^.]*$//')
+domainhostname=$(echo $serverhostname | sed 's/^[^.]*.//g')
 ns1host="ns1.${domainhostname}"
 ns2host="ns2.${domainhostname}"
 
-# Set some variables to let DirectAdmin install correctly.
-export DA_CHANNEL=current
+# Set variables to let DirectAdmin install correctly.
+if [ ! -z "${directadmin_setup_admin_username}" ] && [ ! "${#directadmin_setup_admin_username}" -gt 10 ]
+	then
+		export DA_ADMIN_USER=$directadmin_setup_admin_username
+fi
 export DA_HOSTNAME=$serverhostname
 export DA_NS1=$ns1host
 export DA_NS2=$ns2host
+export DA_CHANNEL=stable
 export DA_FOREGROUND_CUSTOMBUILD=yes
+export mysql_inst=mysql
+export mysql=8.0
+export php1_release=8.2
+export php2_release=8.1
+export php1_mode=php-fpm
+export php2_mode=php-fpm
 
-# Download and run the DirectAdmin install script.
+# Download and install DirectAdmin.
 wget -O directadmin.sh https://download.directadmin.com/setup.sh
 chmod 755 directadmin.sh
-./directadmin.sh $1
+./directadmin.sh $directadmin_setup_license_key
 
-# Install and request LetsEncrypt Certificates for the directadmin domain itself.
-cd /usr/local/directadmin/custombuild
-./build letsencrypt
-/usr/local/directadmin/scripts/letsencrypt.sh request_single $serverhostname 4096
-systemctl restart directadmin.service
-
-# Enable multi SSL support for the mail server.
-echo "mail_sni=1" >> /usr/local/directadmin/conf/directadmin.conf
-systemctl restart directadmin.service
-cd /usr/local/directadmin/custombuild
-./build clean
-./build update
-./build set eximconf yes
-./build set dovecot_conf yes
-./build exim_conf
-./build dovecot_conf
+# Change some DirectAdmin settings that should be the default.
+/usr/local/directadmin/directadmin config-set allow_backup_encryption 1
+/usr/local/directadmin/directadmin config-set backup_ftp_md5 1
+/usr/local/directadmin/directadmin config-set mail_sni 1
+/usr/local/directadmin/directadmin set one_click_pma_login 1
+systemctl restart directadmin
+/usr/local/directadmin/custombuild/build clean
+/usr/local/directadmin/custombuild/build update
+/usr/local/directadmin/custombuild/build set eximconf yes
+/usr/local/directadmin/custombuild/build set dovecot_conf yes
+/usr/local/directadmin/custombuild/build exim_conf
+/usr/local/directadmin/custombuild/build dovecot_conf
+/usr/local/directadmin/custombuild/build phpmyadmin
+/usr/local/directadmin/custombuild/build composer
+/usr/local/directadmin/custombuild/build wp
 echo "action=rewrite&value=mail_sni" >> /usr/local/directadmin/data/task.queue
 
-# Enable and build cURL in CustomBuilds and build it.
-cd /usr/local/directadmin/custombuild
-sed -i "s/curl=no/curl=yes/g" options.conf
-./build curl
+# Check if there is a custom DNS file that needs to be used.
+if [ -f "${installdir}/files/dns_ns.conf" ];
+then
+	mkdir /usr/local/directadmin/data/templates/custom
+	cp "${installdir}/files/dns_ns.conf" /usr/local/directadmin/data/templates/custom/
+	chmod 644 /usr/local/directadmin/data/templates/custom/dns_ns.conf
+	chown diradmin:diradmin /usr/local/directadmin/data/templates/custom/dns_ns.conf
+fi
 
-# Change the installed PHP versions.
-cd /usr/local/directadmin/custombuild
-./build update
-./build set php1_release 8.1
-./build set php2_release 8.0
-./build set php3_release 7.4
-./build set php1_mode php-fpm
-./build set php2_mode php-fpm
-./build set php3_mode php-fpm
-./build php n
-./build rewrite_confs
+# Check if there is a custom MySQL script that needs to be installed.
+if [ -f "${installdir}/files/mysql_update_cert.sh" ];
+then
+	cp "${installdir}/files/mysql_update_cert.sh" /usr/local/directadmin/scripts/custom/
+	chmod 755 /usr/local/directadmin/scripts/custom/mysql_update_cert.sh
+	chown root:root /usr/local/directadmin/scripts/custom/mysql_update_cert.sh
+	echo "0 3	* * 1	root	/usr/local/directadmin/scripts/custom/mysql_update_cert.sh" >> /etc/crontab
+	systemctl restart cron
+	/usr/local/directadmin/scripts/custom/mysql_update_cert.sh
+fi
 
-# Install everything needed for the Pro Pack.
-cd /usr/local/directadmin/custombuild
-./build composer
-./build wp
-apt -y install git
+# Check if there is a custom FTP script that needs to be installed.
+if [ -f "${installdir}/files/ftp_upload.php" ] && [ -f "${installdir}/files/ftp_download.php" ] && [ -f "${installdir}/files/ftp_list.php" ];
+then
+	cp "${installdir}/files/ftp_upload.php" /usr/local/directadmin/scripts/custom/
+	cp "${installdir}/files/ftp_download.php" /usr/local/directadmin/scripts/custom/
+	cp "${installdir}/files/ftp_list.php" /usr/local/directadmin/scripts/custom/
+	chmod 700 /usr/local/directadmin/scripts/custom/ftp_upload.php
+	chmod 700 /usr/local/directadmin/scripts/custom/ftp_download.php
+	chmod 700 /usr/local/directadmin/scripts/custom/ftp_list.php
+	chown diradmin:diradmin /usr/local/directadmin/scripts/custom/ftp_upload.php
+	chown diradmin:diradmin /usr/local/directadmin/scripts/custom/ftp_download.php
+	chown diradmin:diradmin /usr/local/directadmin/scripts/custom/ftp_list.php
+fi
 
-# Setup SSO for PHPMyAdmin.
-cd /usr/local/directadmin/
-./directadmin set one_click_pma_login 1
-service directadmin restart
-cd custombuild
-./build update
-./build phpmyadmin
 
-# Clear the screen and display the login data.
-clear
 . /usr/local/directadmin/scripts/setup.txt
-echo "Username: $adminname"
-echo "Password: $adminpass"
-echo "Domain: $serverhostname"
+onetimelogin=`/usr/local/directadmin/directadmin --create-login-url user=$directadmin_setup_admin_username`
+
+echo "{\"hostname\" : \"$serverhostname\", \"admin_username\" : \"$adminname\", \"admin_password\" : \"$adminpass\", \"login_url\" : \"$onetimelogin\", \"headless_email\" : \"$directadmin_setup_headless_email\"}" > "${installdir}/files/login.json"
+/usr/local/bin/php -f "${installdir}/files/mailer.php"
+rm "${installdir}/files/login.json"
 
 exit 0
