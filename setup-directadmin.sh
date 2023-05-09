@@ -63,17 +63,25 @@ chmod 755 directadmin.sh
 /usr/local/directadmin/directadmin config-set backup_ftp_md5 1
 /usr/local/directadmin/directadmin config-set mail_sni 1
 /usr/local/directadmin/directadmin set one_click_pma_login 1
+
 systemctl restart directadmin
+
 /usr/local/directadmin/custombuild/build clean
 /usr/local/directadmin/custombuild/build update
 /usr/local/directadmin/custombuild/build set eximconf yes
 /usr/local/directadmin/custombuild/build set dovecot_conf yes
+/usr/local/directadmin/custombuild/build set_php "ioncube" yes
+/usr/local/directadmin/custombuild/build set_php "gmp" yes
+/usr/local/directadmin/custombuild/build set_php "imap" yes
 /usr/local/directadmin/custombuild/build exim_conf
 /usr/local/directadmin/custombuild/build dovecot_conf
 /usr/local/directadmin/custombuild/build phpmyadmin
 /usr/local/directadmin/custombuild/build composer
 /usr/local/directadmin/custombuild/build wp
 echo "action=rewrite&value=mail_sni" >> /usr/local/directadmin/data/task.queue
+/usr/local/directadmin/custombuild/build "ioncube"
+/usr/local/directadmin/custombuild/build "gmp"
+/usr/local/directadmin/custombuild/build "imap"
 
 # Check if there is a custom DNS file that needs to be used.
 if [ -f "${installdir}/files/dns_ns.conf" ];
