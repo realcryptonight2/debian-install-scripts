@@ -68,21 +68,22 @@ systemctl restart directadmin
 
 /usr/local/directadmin/custombuild/build clean
 /usr/local/directadmin/custombuild/build update
-
 /usr/local/directadmin/custombuild/build set eximconf yes
 /usr/local/directadmin/custombuild/build set dovecot_conf yes
 /usr/local/directadmin/custombuild/build set_php "ioncube" yes
 /usr/local/directadmin/custombuild/build set_php "gmp" yes
 /usr/local/directadmin/custombuild/build set_php "imap" yes
-
-/usr/local/directadmin/custombuild/build update_versions
-echo "action=rewrite&value=mail_sni" >> /usr/local/directadmin/data/task.queue
+/usr/local/directadmin/custombuild/build set_php "imagick" yes
+/usr/local/directadmin/custombuild/build exim_conf
+/usr/local/directadmin/custombuild/build dovecot_conf
+/usr/local/directadmin/custombuild/build phpmyadmin
 /usr/local/directadmin/custombuild/build composer
 /usr/local/directadmin/custombuild/build wp
-/usr/local/directadmin/custombuild/build phpmyadmin
-
-#/usr/local/directadmin/custombuild/build exim_conf
-#/usr/local/directadmin/custombuild/build dovecot_conf
+echo "action=rewrite&value=mail_sni" >> /usr/local/directadmin/data/task.queue
+/usr/local/directadmin/custombuild/build "php_ioncube"
+/usr/local/directadmin/custombuild/build "php_gmp"
+/usr/local/directadmin/custombuild/build "php_imap"
+/usr/local/directadmin/custombuild/build "php_imagick"
 
 # Check if there is a custom DNS file that needs to be used.
 if [ -f "${installdir}/files/dns_ns.conf" ];
