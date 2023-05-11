@@ -94,17 +94,6 @@ then
 	chown diradmin:diradmin /usr/local/directadmin/data/templates/custom/dns_ns.conf
 fi
 
-# Check if there is a custom MySQL script that needs to be installed.
-if [ -f "${installdir}/files/mysql_update_cert.sh" ];
-then
-	cp "${installdir}/files/mysql_update_cert.sh" /usr/local/directadmin/scripts/custom/
-	chmod 755 /usr/local/directadmin/scripts/custom/mysql_update_cert.sh
-	chown root:root /usr/local/directadmin/scripts/custom/mysql_update_cert.sh
-	echo "0 3	* * 1	root	/usr/local/directadmin/scripts/custom/mysql_update_cert.sh" >> /etc/crontab
-	systemctl restart cron
-	/usr/local/directadmin/scripts/custom/mysql_update_cert.sh
-fi
-
 # Check if there is a custom FTP script that needs to be installed.
 if [ -f "${installdir}/files/ftp_upload.php" ] && [ -f "${installdir}/files/ftp_download.php" ] && [ -f "${installdir}/files/ftp_list.php" ];
 then
