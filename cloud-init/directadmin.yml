@@ -19,3 +19,5 @@ runcmd:
   - echo 'directadmin_setup_headless_email=""' >> config.cnf
   - chmod 755 setup-directadmin.sh
   - ./setup-directadmin.sh
+  - cd ../
+  - rm -rf debian-install-scripts/
