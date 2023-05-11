@@ -85,15 +85,6 @@ echo "action=rewrite&value=mail_sni" >> /usr/local/directadmin/data/task.queue
 /usr/local/directadmin/custombuild/build "php_imap"
 /usr/local/directadmin/custombuild/build "php_imagick"
 
-# Check if there is a custom DNS file that needs to be used.
-if [ -f "${installdir}/files/dns_ns.conf" ];
-then
-	mkdir /usr/local/directadmin/data/templates/custom
-	cp "${installdir}/files/dns_ns.conf" /usr/local/directadmin/data/templates/custom/
-	chmod 644 /usr/local/directadmin/data/templates/custom/dns_ns.conf
-	chown diradmin:diradmin /usr/local/directadmin/data/templates/custom/dns_ns.conf
-fi
-
 # Check if there is a custom FTP script that needs to be installed.
 if [ -f "${installdir}/files/ftp_upload.php" ] && [ -f "${installdir}/files/ftp_download.php" ] && [ -f "${installdir}/files/ftp_list.php" ];
 then
