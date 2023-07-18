@@ -28,7 +28,7 @@ apt -y install git &&
 git clone https://github.com/realcryptonight/debian-install-scripts.git &&
 cp ./config.cnf ./debian-install-scripts/
 cd debian-install-scripts/ &&
-git checkout dev-script &&
+git checkout dev-test &&
 chmod 755 setup-directadmin.sh &&
 ./setup-directadmin.sh
 ```
