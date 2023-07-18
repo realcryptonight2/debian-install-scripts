@@ -56,34 +56,28 @@ export php2_mode=php-fpm
 # Download and install DirectAdmin.
 wget -O directadmin.sh https://download.directadmin.com/setup.sh
 chmod 755 directadmin.sh
-./directadmin.sh $directadmin_setup_license_key
+./directadmin.sh $directadmin_setup_license_key  >> $log_file
 
 # Change some DirectAdmin settings that should be the default.
-/usr/local/directadmin/directadmin config-set allow_backup_encryption 1
-/usr/local/directadmin/directadmin config-set backup_ftp_md5 1
-/usr/local/directadmin/directadmin config-set mail_sni 1
-/usr/local/directadmin/directadmin set one_click_pma_login 1
+/usr/local/directadmin/directadmin config-set allow_backup_encryption 1 >> $log_file
+/usr/local/directadmin/directadmin config-set backup_ftp_md5 1 >> $log_file
+/usr/local/directadmin/directadmin config-set mail_sni 1 >> $log_file
+/usr/local/directadmin/directadmin set one_click_pma_login 1 >> $log_file
 
-systemctl restart directadmin
+systemctl restart directadmin >> $log_file
 
-/usr/local/directadmin/custombuild/build clean
-/usr/local/directadmin/custombuild/build update
-/usr/local/directadmin/custombuild/build set eximconf yes
-/usr/local/directadmin/custombuild/build set dovecot_conf yes
-/usr/local/directadmin/custombuild/build set_php "ioncube" yes
-/usr/local/directadmin/custombuild/build set_php "gmp" yes
-/usr/local/directadmin/custombuild/build set_php "imap" yes
-/usr/local/directadmin/custombuild/build set_php "imagick" yes
-/usr/local/directadmin/custombuild/build exim_conf
-/usr/local/directadmin/custombuild/build dovecot_conf
-/usr/local/directadmin/custombuild/build phpmyadmin
-/usr/local/directadmin/custombuild/build composer
-/usr/local/directadmin/custombuild/build wp
+/usr/local/directadmin/custombuild/build clean >> $log_file
+/usr/local/directadmin/custombuild/build update >> $log_file
+/usr/local/directadmin/custombuild/build set eximconf yes >> $log_file
+/usr/local/directadmin/custombuild/build set dovecot_conf yes >> $log_file
+/usr/local/directadmin/custombuild/build set_php "imagick" yes >> $log_files
+/usr/local/directadmin/custombuild/build exim_conf >> $log_file
+/usr/local/directadmin/custombuild/build dovecot_conf >> $log_file
+/usr/local/directadmin/custombuild/build phpmyadmin >> $log_file
+/usr/local/directadmin/custombuild/build composer >> $log_file
+/usr/local/directadmin/custombuild/build wp >> $log_file
 echo "action=rewrite&value=mail_sni" >> /usr/local/directadmin/data/task.queue
-/usr/local/directadmin/custombuild/build "php_ioncube"
-/usr/local/directadmin/custombuild/build "php_gmp"
-/usr/local/directadmin/custombuild/build "php_imap"
-/usr/local/directadmin/custombuild/build "php_imagick"
+/usr/local/directadmin/custombuild/build "php_imagick" >> $log_file
 
 # Check if there is a custom FTP script that needs to be installed.
 if [ -f "${installdir}/files/ftp_upload.php" ] && [ -f "${installdir}/files/ftp_download.php" ] && [ -f "${installdir}/files/ftp_list.php" ];
@@ -97,6 +91,9 @@ then
 	chown diradmin:diradmin /usr/local/directadmin/scripts/custom/ftp_upload.php
 	chown diradmin:diradmin /usr/local/directadmin/scripts/custom/ftp_download.php
 	chown diradmin:diradmin /usr/local/directadmin/scripts/custom/ftp_list.php
+	echo "Custom FTP script is installed."  >> $log_file
+else
+	echo "No Custom FTP script provided. Skipping..."
 fi
 
 
