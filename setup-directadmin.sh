@@ -96,18 +96,6 @@ else
 	echo "No Custom FTP script provided. Skipping..."
 fi
 
-# Check if there is a custom DNS file that needs to be used.
-if [ -f "${installdir}/files/dns_ns.conf" ];
-then
-	mkdir /usr/local/directadmin/data/templates/custom
-	cp "${installdir}/files/dns_ns.conf" /usr/local/directadmin/data/templates/custom/
-	chmod 644 /usr/local/directadmin/data/templates/custom/dns_ns.conf
-	chown diradmin:diradmin /usr/local/directadmin/data/templates/custom/dns_ns.conf
-	echo "Custom NameServer config is installed."  >> $log_file
-else
-	echo "No Custom NameServer config is provided. Skipping..."  >> $log_file
-fi
-
 . /usr/local/directadmin/scripts/setup.txt
 onetimelogin=`/usr/local/directadmin/directadmin --create-login-url user=$directadmin_setup_admin_username`
 
