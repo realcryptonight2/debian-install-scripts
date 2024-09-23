@@ -47,11 +47,10 @@ export DA_NS2=$ns2host
 export DA_CHANNEL=stable
 export DA_FOREGROUND_CUSTOMBUILD=yes
 export mysql_inst=mysql
-export mysql=8.0
-export php1_release=8.2
-export php2_release=8.1
+export mysql=8.4
+export php1_release=8.3
+export php2_release=8.2
 export php1_mode=php-fpm
-export php2_mode=php-fpm
 
 # Download and install DirectAdmin.
 wget -O directadmin.sh https://download.directadmin.com/setup.sh
@@ -61,22 +60,13 @@ chmod 755 directadmin.sh
 # Change some DirectAdmin settings that should be the default.
 /usr/local/directadmin/directadmin config-set allow_backup_encryption 1 >> $log_file
 /usr/local/directadmin/directadmin config-set backup_ftp_md5 1 >> $log_file
-/usr/local/directadmin/directadmin config-set mail_sni 1 >> $log_file
-/usr/local/directadmin/directadmin set one_click_pma_login 1 >> $log_file
 
 systemctl restart directadmin >> $log_file
 
 /usr/local/directadmin/custombuild/build clean >> $log_file
 /usr/local/directadmin/custombuild/build update >> $log_file
-/usr/local/directadmin/custombuild/build set eximconf yes >> $log_file
-/usr/local/directadmin/custombuild/build set dovecot_conf yes >> $log_file
 /usr/local/directadmin/custombuild/build set_php "imagick" yes >> $log_files
-/usr/local/directadmin/custombuild/build exim_conf >> $log_file
-/usr/local/directadmin/custombuild/build dovecot_conf >> $log_file
-/usr/local/directadmin/custombuild/build phpmyadmin >> $log_file
 /usr/local/directadmin/custombuild/build composer >> $log_file
-/usr/local/directadmin/custombuild/build wp >> $log_file
-echo "action=rewrite&value=mail_sni" >> /usr/local/directadmin/data/task.queue
 /usr/local/directadmin/custombuild/build "php_imagick" >> $log_file
 
 # Check if there is a custom FTP script that needs to be installed.
