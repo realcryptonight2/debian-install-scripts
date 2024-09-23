@@ -86,6 +86,13 @@ else
 	echo "No Custom FTP script provided. Skipping..."
 fi
 
+if [ ! -z "${directadmin_setup_admin_username}" ] && [ ! "${#directadmin_setup_admin_username}" -gt 10 ]
+	then
+		usermod -aG sudo $directadmin_setup_admin_username
+	else
+		usermod -aG sudo admin
+fi
+
 . /usr/local/directadmin/scripts/setup.txt
 onetimelogin=`/usr/local/directadmin/directadmin --create-login-url user=$directadmin_setup_admin_username`
 

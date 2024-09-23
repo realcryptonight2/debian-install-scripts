@@ -8,6 +8,7 @@ packages:
   - rclone
   - zip
   - unzip
+  - sudo
 runcmd:
   - git clone https://github.com/realcryptonight/debian-install-scripts.git
   - cd debian-install-scripts/
