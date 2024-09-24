@@ -88,12 +88,14 @@ else
 fi
 
 usermod -aG sudo $directadmin_setup_admin_username
+cp /root/install.log /home/$directadmin_setup_admin_username/
+chown $directadmin_setup_admin_username:$directadmin_setup_admin_username /home/$directadmin_setup_admin_username/install.log
+chmod 600 /home/$directadmin_setup_admin_username/install.log
+rm /root/install.log
 
 onetimelogin=`/usr/local/directadmin/directadmin --create-login-url user=$directadmin_setup_admin_username`
-directadmin_setup_admin_password=$(tr -dc 'A-Za-z0-9!"#$%&'\''()*+,-./:;<=>?@[\]^_`{|}~' </dev/urandom | head -c 32; echo)
-echo $directadmin_setup_admin_password | passwd $directadmin_setup_admin_username --stdin
 
-echo "{\"hostname\" : \"$serverhostname\", \"admin_username\" : \"$directadmin_setup_admin_username\", \"admin_password\" : \"$directadmin_setup_admin_password\", \"login_url\" : \"$onetimelogin\", \"headless_email\" : \"$directadmin_setup_headless_email\"}" > "${installdir}/files/login.json"
+echo "{\"hostname\" : \"$serverhostname\", \"login_url\" : \"$onetimelogin\", \"headless_email\" : \"$directadmin_setup_headless_email\"}" > "${installdir}/files/login.json"
 /usr/local/bin/php -f "${installdir}/files/mailer.php"
 rm "${installdir}/files/login.json"
 
