@@ -37,10 +37,11 @@ ns1host="ns1.${domainhostname}"
 ns2host="ns2.${domainhostname}"
 
 # Set variables to let DirectAdmin install correctly.
-if [ ! -z "${directadmin_setup_admin_username}" ] && [ ! "${#directadmin_setup_admin_username}" -gt 10 ]
+if [ -z "${directadmin_setup_admin_username}" ] || [ "${#directadmin_setup_admin_username}" -gt 10 ]
 	then
-		export DA_ADMIN_USER=$directadmin_setup_admin_username
+		directadmin_setup_admin_username="admin"
 fi
+export DA_ADMIN_USER=$directadmin_setup_admin_username
 export DA_HOSTNAME=$serverhostname
 export DA_NS1=$ns1host
 export DA_NS2=$ns2host
@@ -86,17 +87,13 @@ else
 	echo "No Custom FTP script provided. Skipping..."
 fi
 
-if [ ! -z "${directadmin_setup_admin_username}" ] && [ ! "${#directadmin_setup_admin_username}" -gt 10 ]
-	then
-		usermod -aG sudo $directadmin_setup_admin_username
-	else
-		usermod -aG sudo admin
-fi
+usermod -aG sudo $directadmin_setup_admin_username
 
-. /usr/local/directadmin/scripts/setup.txt
 onetimelogin=`/usr/local/directadmin/directadmin --create-login-url user=$directadmin_setup_admin_username`
+directadmin_setup_admin_password=$(tr -dc 'A-Za-z0-9!"#$%&'\''()*+,-./:;<=>?@[\]^_`{|}~' </dev/urandom | head -c 32; echo)
+echo $directadmin_setup_admin_password | passwd $directadmin_setup_admin_username --stdin
 
-echo "{\"hostname\" : \"$serverhostname\", \"admin_username\" : \"$adminname\", \"admin_password\" : \"$adminpass\", \"login_url\" : \"$onetimelogin\", \"headless_email\" : \"$directadmin_setup_headless_email\"}" > "${installdir}/files/login.json"
+echo "{\"hostname\" : \"$serverhostname\", \"admin_username\" : \"$directadmin_setup_admin_username\", \"admin_password\" : \"$directadmin_setup_admin_password\", \"login_url\" : \"$onetimelogin\", \"headless_email\" : \"$directadmin_setup_headless_email\"}" > "${installdir}/files/login.json"
 /usr/local/bin/php -f "${installdir}/files/mailer.php"
 rm "${installdir}/files/login.json"
 
