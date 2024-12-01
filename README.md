@@ -1,4 +1,10 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/realcryptonight2/debian-install-scripts/blob/master/LICENSE.md)
+NOTE:
+I am in the process of deprecating this repository.
+Everything that is still on production will be moved to the Proxmox VE scripts repository.
+If you need this repository for your envoirment then it is recommended to make a copy of this repository.
+As it may be removed/deleted in the future.
+
 # debian-install-scripts
 These are the debian scripts I use.
 

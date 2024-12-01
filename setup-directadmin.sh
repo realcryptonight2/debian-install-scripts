@@ -37,21 +37,21 @@ ns1host="ns1.${domainhostname}"
 ns2host="ns2.${domainhostname}"
 
 # Set variables to let DirectAdmin install correctly.
-if [ ! -z "${directadmin_setup_admin_username}" ] && [ ! "${#directadmin_setup_admin_username}" -gt 10 ]
+if [ -z "${directadmin_setup_admin_username}" ] || [ "${#directadmin_setup_admin_username}" -gt 10 ]
 	then
-		export DA_ADMIN_USER=$directadmin_setup_admin_username
+		directadmin_setup_admin_username="admin"
 fi
+export DA_ADMIN_USER=$directadmin_setup_admin_username
 export DA_HOSTNAME=$serverhostname
 export DA_NS1=$ns1host
 export DA_NS2=$ns2host
 export DA_CHANNEL=stable
 export DA_FOREGROUND_CUSTOMBUILD=yes
 export mysql_inst=mysql
-export mysql=8.0
-export php1_release=8.2
-export php2_release=8.1
+export mysql=8.4
+export php1_release=8.3
+export php2_release=8.2
 export php1_mode=php-fpm
-export php2_mode=php-fpm
 
 # Download and install DirectAdmin.
 wget -O directadmin.sh https://download.directadmin.com/setup.sh
@@ -61,22 +61,13 @@ chmod 755 directadmin.sh
 # Change some DirectAdmin settings that should be the default.
 /usr/local/directadmin/directadmin config-set allow_backup_encryption 1 >> $log_file
 /usr/local/directadmin/directadmin config-set backup_ftp_md5 1 >> $log_file
-/usr/local/directadmin/directadmin config-set mail_sni 1 >> $log_file
-/usr/local/directadmin/directadmin set one_click_pma_login 1 >> $log_file
 
 systemctl restart directadmin >> $log_file
 
 /usr/local/directadmin/custombuild/build clean >> $log_file
 /usr/local/directadmin/custombuild/build update >> $log_file
-/usr/local/directadmin/custombuild/build set eximconf yes >> $log_file
-/usr/local/directadmin/custombuild/build set dovecot_conf yes >> $log_file
 /usr/local/directadmin/custombuild/build set_php "imagick" yes >> $log_files
-/usr/local/directadmin/custombuild/build exim_conf >> $log_file
-/usr/local/directadmin/custombuild/build dovecot_conf >> $log_file
-/usr/local/directadmin/custombuild/build phpmyadmin >> $log_file
 /usr/local/directadmin/custombuild/build composer >> $log_file
-/usr/local/directadmin/custombuild/build wp >> $log_file
-echo "action=rewrite&value=mail_sni" >> /usr/local/directadmin/data/task.queue
 /usr/local/directadmin/custombuild/build "php_imagick" >> $log_file
 
 # Check if there is a custom FTP script that needs to be installed.
@@ -96,10 +87,15 @@ else
 	echo "No Custom FTP script provided. Skipping..."
 fi
 
-. /usr/local/directadmin/scripts/setup.txt
+usermod -aG sudo $directadmin_setup_admin_username
+cp /root/install.log /home/$directadmin_setup_admin_username/
+chown $directadmin_setup_admin_username:$directadmin_setup_admin_username /home/$directadmin_setup_admin_username/install.log
+chmod 600 /home/$directadmin_setup_admin_username/install.log
+rm /root/install.log
+
 onetimelogin=`/usr/local/directadmin/directadmin --create-login-url user=$directadmin_setup_admin_username`
 
-echo "{\"hostname\" : \"$serverhostname\", \"admin_username\" : \"$adminname\", \"admin_password\" : \"$adminpass\", \"login_url\" : \"$onetimelogin\", \"headless_email\" : \"$directadmin_setup_headless_email\"}" > "${installdir}/files/login.json"
+echo "{\"hostname\" : \"$serverhostname\", \"login_url\" : \"$onetimelogin\", \"headless_email\" : \"$directadmin_setup_headless_email\"}" > "${installdir}/files/login.json"
 /usr/local/bin/php -f "${installdir}/files/mailer.php"
 rm "${installdir}/files/login.json"
 
